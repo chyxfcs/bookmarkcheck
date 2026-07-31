@@ -28,7 +28,6 @@ jobs:
             --timeout 30
             --max-redirects 5
             --accept 200,201,202,301,302,307,308
-            --format markdown
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -37,4 +36,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: 链接检测报告
-          path: lychee-report.md
+          path: |
+            lychee-report.md
+            report.md
+            *.md
+          if-no-files-found: ignore
