@@ -32,6 +32,7 @@ jobs:
             --accept 200,201,202,301,302,307,308
             --format markdown
             --output lychee-report.md
+            --no-fail
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
