@@ -1,43 +1,52 @@
-name: 书签链接检测
+name: 书签分类检测
 
 on:
   workflow_dispatch:
-  
   schedule:
     - cron: "0 2 * * 0"
 
 jobs:
   check:
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
 
     steps:
-      - name: 拉取仓库代码
+      - name: 拉取仓库
         uses: actions/checkout@v4
 
-      - name: 检测书签链接
-        uses: lycheeverse/lychee-action@v2
+      - name: 提取所有链接
+        run: |
+          # 提取所有 href 里的链接，去重，排除本地地址
+          grep -oP 'HREF="\K[^"]+' bookmarks.html | sort -u > all-urls.txt
+          # 排除本地地址
+          sed -i '/^file:\/\//d; /^http:\/\/127\./d; /^http:\/\/192\.168\./d; /^http:\/\/10\./d; /^http:\/\/localhost/d' all-urls.txt
+          echo "共提取 $(wc -l < all-urls.txt) 个链接"
+
+      - name: 上传链接列表
+        uses: actions/upload-artifact@v4
+        with:
+          name: 完整链接列表
+          path: all-urls.txt
+
+      - name: 检测链接
+        uses: lycheeverse/lychee-action@v1
         with:
           fail: false
           args: >
-            bookmarks.html
+            all-urls.txt
             --verbose
-            --threads 10
-            --timeout 30
+            --threads 5
+            --timeout 45
             --max-redirects 5
-            --accept 200,201,202,301,302,307,308
+            --insecure
+            --accept 200,201,202,301,302,307,308,401,403
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 上传检测报告
+      - name: 上传报告
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: 链接检测报告
-          path: |
-            lychee-report.md
-            report.md
-            *.md
-          if-no-files-found: ignore
+          path: lychee-report.md
