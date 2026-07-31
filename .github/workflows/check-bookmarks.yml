@@ -20,10 +20,10 @@ jobs:
       - name: 检测书签链接
         uses: lycheeverse/lychee-action@v2
         with:
+          fail: false
           args: >
             bookmarks.html
             --verbose
-            --no-fail
             --threads 10
             --timeout 30
             --max-redirects 5
